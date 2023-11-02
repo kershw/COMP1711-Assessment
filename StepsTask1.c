@@ -43,30 +43,44 @@ void tokeniseRecord(const char *input, const char *delimiter,
 
 // Complete the main function
 int main() {
-    char filename [21] = "FitnessData_2023.csv";
-    FILE *file = fopen(filename, "r");
+    char filename [21] = "FitnessData_2023.csv"; //gets file
+    FILE *file = fopen(filename, "r"); //opens file
     
-    if (file == NULL) {
+    if (file == NULL) { //checks for no file error
         perror("There is no file, couldn't find data.");
         return 1;
     }
 
-    char data[20];
-    int count = 0;
-    char fitnessArray[60]; //need to make this 
-    while (fgets(data, 60, file))  { //gets each row of data and puts it in fitnessArray.
-        printf("%s\n", data);
-        fitnessArray[count] = *data;
+    char temp[25];
+    int fileLength = 0;
+    while (fgets(temp, 22, file))  { //finds the length of the file - for use with unseen files which may have varying lengths
+        fileLength++;
+    }
+
+    rewind(file); //puts the file pointer back to 0 so fgets() can be run again
+    FITNESS_DATA STEP_INTERVAL [fileLength]; //defines the array of structs
+    //defining various variables to be used within the while loop
+    char data[22]; 
+    int count = 0; 
+    //date length 11, time length 6, steps length 10; remember this or string formatting goes weird
+    char OutputDate[11]; 
+    char OutputTime[6];
+    char OutputSteps[10];
+
+    while (fgets(data, 22, file)) { //buffer = length of max string + 1
+        tokeniseRecord(data, ",", OutputDate, OutputTime, OutputSteps); //runs tokenise record function to get data from each line
+        strcpy(STEP_INTERVAL[count].date, OutputDate); //copies date to struct
+        strcpy(STEP_INTERVAL[count].time, OutputTime); //copies time to struct
+        STEP_INTERVAL[count].steps = atoi(OutputSteps); //copies steps to struct - use atoi to save as int
         count++;
     }
 
-    printf("%d", fitnessArray[0]);
-    for (int i=0; i<count; i++){
-        char temp = fitnessArray[i];
-
-        tokeniseRecord(temp, ",");
-
+    /* iterating through struct array for debugging
+    for (int i=0; i<fileLength; i++){
+        printf("%d\n", STEP_INTERVAL[i].steps);
     }
-    
+    */
+
+
     fclose(file);
 }
