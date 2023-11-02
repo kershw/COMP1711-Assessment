@@ -53,12 +53,20 @@ int main() {
 
     char data[20];
     int count = 0;
-    char fitnessArray[60];
-    while (fgets(data, 60, file)) {
+    char fitnessArray[60]; //need to make this 
+    while (fgets(data, 60, file))  { //gets each row of data and puts it in fitnessArray.
         printf("%s\n", data);
         fitnessArray[count] = *data;
         count++;
     }
 
+    printf("%d", fitnessArray[0]);
+    for (int i=0; i<count; i++){
+        char temp = fitnessArray[i];
+
+        tokeniseRecord(temp, ",");
+
+    }
+    
     fclose(file);
 }
