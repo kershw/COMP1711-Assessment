@@ -40,12 +40,12 @@ int getDataFromFile(char filename[30]) {
     FILE *file = fopen(filename, "r"); //opens file
     
     if (file == NULL) { //checks for no file error
-        perror("Error, couldn't open the file.");
-        return 1;
+        printf("Error: Could not find or open the file.\n");
+        return -1;
     }
 
     char temp[25];
-    while (fgets(temp, 30, file))  { //finds the length of the file - for use with unseen files which may have varying lengths
+    while (fgets(temp, 25, file))  { //finds the length of the file - for use with unseen files which may have varying lengths
         fileLength++;
     }
 
@@ -58,7 +58,7 @@ int getDataFromFile(char filename[30]) {
     char outputTime[6];
     char outputSteps[10];
 
-    while (fgets(data, 30, file)) { //buffer = a few characters more than max length for safety
+    while (fgets(data, 25, file)) { //buffer = a few characters more than max length for safety
         tokeniseRecord(data, ",", outputDate, outputTime, outputSteps); //runs tokenise record function to get data from each line
         strcpy(STEP_INTERVAL[count].date, outputDate); //copies date to struct
         strcpy(STEP_INTERVAL[count].time, outputTime); //copies time to struct
@@ -95,7 +95,7 @@ int calculations(int* fewestStepsIndex, int* mostStepsIndex, int* mean, int* per
             *mostStepsIndex = i;
         }
         //calculate the sum of the values in order to calculate the mean
-        Sum += STEP_INTERVAL[i].steps;
+        sum += STEP_INTERVAL[i].steps;
         //find the longest continuous period where step count > 500
 
         if (STEP_INTERVAL[i].steps <= 500) {
@@ -103,16 +103,16 @@ int calculations(int* fewestStepsIndex, int* mostStepsIndex, int* mean, int* per
                 longestPeriod = count;
                 *periodStart = tempPeriodStart;
 
-                *periodEnd = i;
+                *periodEnd = i - 1;
             }
-            Count = 0;
+            count = 0;
         }
 
         if (STEP_INTERVAL[i].steps > 500) {
             if (count == 0) {
                 tempPeriodStart = i;
             }
-            Count++;
+            count++;
         }
 
         //first check if its over 500
@@ -123,8 +123,8 @@ int calculations(int* fewestStepsIndex, int* mostStepsIndex, int* mean, int* per
         //if count is > 0
 
     }
-    int temp = (sum / fileLength);
-    mean = temp;
+    int temp = ((float) sum / (float) fileLength) + 0.5;
+    *mean = temp;
 
     return 0;
 }
@@ -133,16 +133,20 @@ int calculations(int* fewestStepsIndex, int* mostStepsIndex, int* mean, int* per
 int main() {
     char choice;
     while (choice != 'Q') {
-        printf("Select from the following options:\n");
-        printf("A: Specify a filename to be imported\nB: Display the total number of records in the file\nC: Return the date and time of the timeslot with the fewest steps\n");
-        printf("D: Return the date and time of the timeslot with the largest number of steps\nE: Calculate the mean step count of all the records in the file\n");
+        printf("Menu Options:\n");
+        printf("A: Specify the filename to be imported\nB: Display the total number of records in the file\nC: Find the date and time of the timeslot with the fewest steps\n");
+        printf("D: Find the date and time of the timeslot with the largest number of steps\nE: Find the mean step count of all the records in the file\n");
         printf("F: Find the longest continuous period where the step count is above 500 steps\nQ: Quit\n");
+        printf("Enter choice: ");
         scanf(" %c", &choice);
         switch (choice) {
             case 'A':
-                printf("Input filename:\n");
+                printf("Input filename: ");
                 scanf(" %s", filename);
                 int fileLength = getDataFromFile(filename);
+                if (fileLength == -1) {
+                    return 1;
+                } 
 
                 int fewestStepsIndex = 0;
                 int mostStepsIndex = 0;
@@ -158,14 +162,19 @@ int main() {
                 break;
 
             case 'C':
-                printf("%s %s\n", STEP_INTERVAL[fewestStepsIndex].date, STEP_INTERVAL[fewestStepsIndex].time);
+                printf("Fewest steps: %s %s\n", STEP_INTERVAL[fewestStepsIndex].date, STEP_INTERVAL[fewestStepsIndex].time);
                 break;
 
             case 'D':
-                printf("%s %s\n", STEP_INTERVAL[mostStepsIndex].date, STEP_INTERVAL[mostStepsIndex].time);
+                printf("Largest steps: %s %s\n", STEP_INTERVAL[mostStepsIndex].date, STEP_INTERVAL[mostStepsIndex].time);
                 break;
 
             case 'E':
+                printf("Mean step count: %d\n", mean);
+                break;
+
+            case 'F':
+                printf("Longest period start: %s %s\nLongest period end: %s %s\n", STEP_INTERVAL[longestPeriodStartIndex].date, STEP_INTERVAL[longestPeriodStartIndex].time, STEP_INTERVAL[longestPeriodEndIndex].date, STEP_INTERVAL[longestPeriodEndIndex].time);
                 break;
         }
     };
